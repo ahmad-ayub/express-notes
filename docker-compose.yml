@@ -10,6 +10,11 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
 
+    healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+
     volumes:
       - database-volume-mysql:/var/lib/mysql
     ports:
@@ -31,8 +36,10 @@ services:
 
   express-typescript-server:
     depends_on:
-      - database-layer
-      - cache-layer
+      database-layer:
+        condition: service_healthy
+      cache-layer:
+        condition: service_started
     environment:
       - NODE_ENV=development
     build:
